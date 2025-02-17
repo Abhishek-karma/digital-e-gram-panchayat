@@ -1,22 +1,19 @@
 import { Navigate } from "react-router-dom";
-import { auth } from "../firebase/firebase.config";
-import { fetchUserRole } from "../firebase/firebase.auth";
+import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children, requiredRole }) => {
-  const user = auth.currentUser;
+  const { currentUser, userRole, loading } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" />;
+  if (loading) return null; // Prevents flickering
+
+  if (!currentUser) {
+    return <Navigate to="/user-login" />;
   }
 
-  const checkRole = async () => {
-    const role = await fetchUserRole(user.uid);
-    if (!role.includes(requiredRole)) {
-      return <Navigate to="/" />;
-    }
-  };
-
-  checkRole();
+  // Allow multiple roles
+  if (requiredRole && !requiredRole.includes(userRole)) {
+    return <Navigate to="/" />;
+  }
 
   return children;
 };
